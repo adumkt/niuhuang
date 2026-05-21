@@ -1,0 +1,2624 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>道-医-牛黄 古代编年史</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Ma+Shan+Zheng&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gold: #C9A961;
+            --secondary-gold: #E8D5A3;
+            --dark-bg: #1A1510;
+            --card-bg: #2A2318;
+            --text-light: #F5F0E6;
+            --text-muted: #A69B8C;
+        }
+
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background: var(--dark-bg);
+            color: var(--text-light);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1A1510 0%, #2C1810 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease, visibility 0.8s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .loading-icon {
+            font-size: 60px;
+            animation: rotate 3s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 30px;
+            font-size: 18px;
+            color: var(--primary-gold);
+            letter-spacing: 4px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .pages-container {
+            width: 100%;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1A1510 0%, #2C1810 100%);
+            display: flex;
+            flex-direction: column;
+            padding: 30px 20px;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .page.prev {
+            opacity: 0;
+            transform: translateX(-100%);
+        }
+
+        .cover-page {
+            justify-content: center;
+            align-items: center;
+            background: radial-gradient(circle at center, #2C1810 0%, #1A1510 100%);
+        }
+
+        .cover-decoration {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 300px;
+            height: 300px;
+            border: 2px solid rgba(201, 169, 97, 0.2);
+            border-radius: 50%;
+            animation: expandCircle 3s ease-out infinite;
+        }
+
+        .cover-decoration::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 200px;
+            height: 200px;
+            border: 1px solid rgba(201, 169, 97, 0.3);
+            border-radius: 50%;
+        }
+
+        @keyframes expandCircle {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
+            50% { transform: translate(-50%, -50%) scale(1.1); opacity: 0.5; }
+        }
+
+        .cover-icon {
+            font-size: 80px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .cover-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 48px;
+            color: var(--primary-gold);
+            text-align: center;
+            letter-spacing: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 0 20px rgba(201, 169, 97, 0.3);
+        }
+
+        .cover-subtitle {
+            font-size: 16px;
+            color: var(--text-muted);
+            letter-spacing: 6px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .cover-hint {
+            position: absolute;
+            bottom: 80px;
+            font-size: 12px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            animation: bounce 2s ease-in-out infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .chapter-page {
+            justify-content: flex-start;
+            padding-top: 50px;
+        }
+
+        .chapter-header {
+            text-align: center;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .chapter-number {
+            font-size: 14px;
+            color: var(--primary-gold);
+            letter-spacing: 4px;
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards 0.2s;
+        }
+
+        .chapter-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            line-height: 1.4;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards 0.4s;
+        }
+
+        .chapter-period {
+            font-size: 12px;
+            color: var(--text-muted);
+            padding: 6px 14px;
+            background: rgba(201, 169, 97, 0.1);
+            border-radius: 20px;
+            display: inline-block;
+            opacity: 0;
+            animation: fadeInUp 0.6s ease forwards 0.6s;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chapter-content {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .person-card {
+            background: rgba(42, 35, 24, 0.8);
+            border-radius: 16px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(201, 169, 97, 0.2);
+            opacity: 0;
+            animation: fadeInUp 0.5s ease forwards;
+            backdrop-filter: blur(10px);
+        }
+
+        .person-card:nth-child(1) { animation-delay: 0.8s; }
+        .person-card:nth-child(2) { animation-delay: 0.95s; }
+        .person-card:nth-child(3) { animation-delay: 1.1s; }
+        .person-card:nth-child(4) { animation-delay: 1.25s; }
+        .person-card:nth-child(5) { animation-delay: 1.4s; }
+        .person-card:nth-child(6) { animation-delay: 1.55s; }
+        .person-card:nth-child(7) { animation-delay: 1.7s; }
+        .person-card:nth-child(8) { animation-delay: 1.85s; }
+
+        .card-header {
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.2) 0%, rgba(139, 69, 19, 0.15) 100%);
+            padding: 15px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card-header:hover {
+            background: linear-gradient(135deg, rgba(201, 169, 97, 0.25) 0%, rgba(139, 69, 19, 0.2) 100%);
+        }
+
+        .person-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .person-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--primary-gold), var(--secondary-gold));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .person-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-gold);
+        }
+
+        .niuhuang-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #8B4513, #A0522D);
+            color: var(--text-light);
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            margin-left: 6px;
+            font-weight: 600;
+        }
+
+        .person-years {
+            font-size: 11px;
+            color: var(--text-muted);
+            white-space: nowrap;
+        }
+
+        .expand-icon {
+            font-size: 16px;
+            color: var(--text-muted);
+            transition: transform 0.3s ease;
+            margin-left: 10px;
+        }
+
+        .person-card.expanded .expand-icon {
+            transform: rotate(180deg);
+        }
+
+        .card-body {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease;
+        }
+
+        .person-card.expanded .card-body {
+            max-height: 800px;
+        }
+
+        .card-section {
+            padding: 12px 18px;
+            border-top: 1px solid rgba(201, 169, 97, 0.1);
+        }
+
+        .section-label {
+            font-size: 10px;
+            color: var(--primary-gold);
+            letter-spacing: 2px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .section-label::before {
+            content: '◆';
+            font-size: 7px;
+        }
+
+        .section-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-light);
+        }
+
+        .page-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 100;
+        }
+
+        .indicator-dot {
+            width: 5px;
+            height: 5px;
+            background: rgba(201, 169, 97, 0.3);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .indicator-dot.active {
+            background: var(--primary-gold);
+            width: 16px;
+            border-radius: 3px;
+        }
+
+        .nav-arrows {
+            position: fixed;
+            bottom: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            z-index: 100;
+        }
+
+        .nav-arrow {
+            width: 45px;
+            height: 45px;
+            background: rgba(201, 169, 97, 0.2);
+            border: 1px solid var(--primary-gold);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-gold);
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-arrow:hover {
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+            transform: scale(1.1);
+        }
+
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: var(--primary-gold);
+            z-index: 100;
+            transition: width 0.3s ease;
+        }
+
+        .page-number {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            z-index: 100;
+        }
+
+        .end-page {
+            text-align: center;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .end-icon {
+            font-size: 60px;
+            margin-bottom: 30px;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .end-title {
+            font-family: 'Ma Shan Zheng', cursive;
+            font-size: 36px;
+            color: var(--primary-gold);
+            letter-spacing: 8px;
+            margin-bottom: 20px;
+        }
+
+        .end-text {
+            font-size: 14px;
+            color: var(--text-muted);
+            line-height: 2;
+        }
+
+        .restart-btn {
+            margin-top: 40px;
+            padding: 12px 30px;
+            background: transparent;
+            border: 2px solid var(--primary-gold);
+            border-radius: 25px;
+            color: var(--primary-gold);
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .restart-btn:hover {
+            background: var(--primary-gold);
+            color: var(--dark-bg);
+        }
+
+        .stats-info {
+            margin-top: 30px;
+            font-size: 12px;
+            color: var(--text-muted);
+            line-height: 1.8;
+        }
+
+        @media (max-width: 360px) {
+            .cover-title {
+                font-size: 40px;
+                letter-spacing: 8px;
+            }
+            
+            .chapter-title {
+                font-size: 24px;
+            }
+            
+            .person-name {
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-icon">☯</div>
+        <div class="loading-text">加载中...</div>
+    </div>
+
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="page-number" id="pageNumber">1 / 22</div>
+
+    <div class="pages-container" id="pagesContainer">
+        
+        <!-- 封面 -->
+        <div class="page cover-page active" data-page="0">
+            <div class="cover-decoration"></div>
+            <div class="cover-icon">☯</div>
+            <h1 class="cover-title">道-医-牛黄</h1>
+            <p class="cover-subtitle">古代编年史</p>
+            <div class="stats-info" style="position:relative; z-index:1; margin-top:40px;">
+                ━━━━━━━━━━━━<br>
+                全书共记载 62 位人物<br>
+                其中牛黄相关 32 位<br>
+                跨越 2500 余年历史<br>
+                ━━━━━━━━━━━━
+            </div>
+            <p class="cover-hint">← 左右滑动翻页 →</p>
+        </div>
+
+        <!-- 第一章 - 第1页 -->
+        <div class="page chapter-page" data-page="1">
+            <div class="chapter-header">
+                <div class="chapter-number">第一章</div>
+                <h2 class="chapter-title">先秦至秦汉</h2>
+                <div class="chapter-period">公元前21世纪 - 公元220年</div>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🧙</div>
+                            <div>
+                                <div class="person-name">老子<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">前571-前471年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">道家学派创始人，著《道德经》，提出"道法自然"宇宙观，是"医道同源"的核心源头。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">阴阳理论成为中医辨证论治总纲，"防患于未然"理念为"治未病"奠定基础。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">"青牛吐黄救民"传说，赋予牛黄"仙药"属性，成为道教推崇牛黄的重要渊源。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📜</div>
+                            <div>
+                                <div class="person-name">庄子</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">前369-前286年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">道家代表人物，首次明确提出"养生"概念，确立道教"重人贵生""性命双修"核心价值观。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">记载的导引、吐纳等内修养生术，成为中医养生、康复调理的重要手段。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📖</div>
+                            <div>
+                                <div class="person-name">《黄帝内经》<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">前250-前5年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">吸收道家"天人合一""阴阳五行"思想，记载道家导引、按摩、祝由疗法，是"医道同源"重要体现。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">中医理论体系奠基之作，系统提出阴阳五行、脏腑经络学说，首次明确"上工治未病"思想。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">"天人相应"理念为牛黄"主养命以应天"药性定位提供理论支撑。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🌿</div>
+                            <div>
+                                <div class="person-name">《神农本草经》<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">东汉，约2世纪</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">深受道家服食养生思想影响，首创上中下三品分类法，上品"主养命以应天"。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">我国第一部药物学专著，确立中药基础理论框架。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">将牛黄列为"上药"，记载"主惊，痫，寒，热，除邪，逐鬼"，奠定牛黄药用基础。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第一章 - 第2页 -->
+        <div class="page chapter-page" data-page="2">
+            <div class="chapter-header">
+                <div class="chapter-number">第一章</div>
+                <h2 class="chapter-title">先秦至秦汉（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">⛪</div>
+                            <div>
+                                <div class="person-name">张道陵</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">34-156年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">正一道祖天师、制度化道医鼻祖，建立两千年世袭天师医道法脉，"施药济民"成为传教核心手段。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">设立二十四治教区，开创中国最早公共医疗体系，独创"符、药、气、祝、砭五法合一"医学模式。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">⚗️</div>
+                            <div>
+                                <div class="person-name">魏伯阳</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约100-170年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">被尊为"万古丹经王"，道教外丹术核心奠基人，将《周易》阴阳理论与炼丹实践结合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《周易参同契》，世界现存最早炼丹术专著，为中医丹药制剂技术奠定基础。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🏥</div>
+                            <div>
+                                <div class="person-name">华佗</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约145-208年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">道教后世尊其为"外科圣手""华佗仙师"，诸多道观设华佗殿供奉。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">创编"五禽戏"，我国最早成套健身气功；擅长外科手术与麻醉，提升中医外科诊疗水平。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🫙</div>
+                            <div>
+                                <div class="person-name">壶公</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">东汉</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">方仙道代表人物，后世尊为"悬壶济世"祖师，是东汉民间道医的重要代表。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">开创"符药合一"民间行医模式，发明葫芦装药的便携诊疗方式，"悬壶"成为中医标志性符号。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第一章 - 第3页 -->
+        <div class="page chapter-page" data-page="3">
+            <div class="chapter-header">
+                <div class="chapter-number">第一章</div>
+                <h2 class="chapter-title">先秦至秦汉（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">👨‍⚕️</div>
+                            <div>
+                                <div class="person-name">费长房</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约147-189年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">壶公嫡传弟子，方仙道医家，与张道陵正一盟威医法并行，构成东汉民间道医两大主流。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">传承符水治病、驱邪疗疾之术，记载最早的"隔离防疫"思想。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">☯️</div>
+                            <div>
+                                <div class="person-name">于吉</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">？-200年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">太平道创始人之一，建立"符水治病、集体疗愈"体系，与天师道并称东汉两大制度化道医体系。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">《太平经》记载最早的中医心理疗法与公共卫生思想，推动民间医疗普及。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🏛️</div>
+                            <div>
+                                <div class="person-name">张鲁</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">？-216年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">三代天师，全面推行天师道医疗体系，推动天师道成为汉代影响力最大的民间宗教与医疗组织。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">全面推行免费公共医疗、疫病防控、养生教化，将天师道医道体系推向成熟。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📿</div>
+                            <div>
+                                <div class="person-name">张衡</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">？-177年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">二代天师，传承正一道医道正统，坚守"以医载道、以道行医"宗风。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">完善符药方剂、服气疗疾体系，延续二十四治公共医疗体系。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第二章 - 第1页 -->
+        <div class="page chapter-page" data-page="4">
+            <div class="chapter-header">
+                <div class="chapter-number">第二章</div>
+                <h2 class="chapter-title">魏晋南北朝</h2>
+                <div class="chapter-period">公元220-589年</div>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🧪</div>
+                            <div>
+                                <div class="person-name">葛玄</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">164-244年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">葛洪从祖父，被尊为"葛仙翁"，开创道教灵宝派，是道教炼丹术与医药学传承的关键人物。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">其炼丹与医药技术传给郑隐再传葛洪，为"陶葛之学"形成奠定基础。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🐉</div>
+                            <div>
+                                <div class="person-name">许逊</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">239-374年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">净明道创始人，被尊为"许真君"，精通医术，践行道教"济世度人"理念。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">在民间广泛施药济民，推动民间医疗普及，其医术经验被后世传承。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📍</div>
+                            <div>
+                                <div class="person-name">皇甫谧</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">215-282年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">西晋著名道士、针灸学家，被尊为"针灸鼻祖"，其学术思想深受道家理论影响。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《针灸甲乙经》，我国第一部系统针灸学经典，确立349个穴位取穴标准，奠定中医针灸学基础。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📕</div>
+                            <div>
+                                <div class="person-name">葛洪<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">261-341年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">"陶葛之学"开创者，自号抱朴子，将道教炼丹术、养生术与医药学深度结合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《肘后备急方》，中国第一部急诊医学手册，记载青蒿治疟等世界医学首创。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">记载3首牛黄方剂，体现牛黄清热解毒、凉血止血、定惊辟邪功效。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第二章 - 第2页 -->
+        <div class="page chapter-page" data-page="5">
+            <div class="chapter-header">
+                <div class="chapter-number">第二章</div>
+                <h2 class="chapter-title">魏晋南北朝（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">👩‍⚕️</div>
+                            <div>
+                                <div class="person-name">鲍姑</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约288-343年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">葛洪之妻，中国历史上第一位有明确记载的女针灸家，上清派道士，道教女道医杰出代表。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">首创"艾灸治疣"疗法，擅长用越冈艾条治疗外科疾病，其技艺被收入《肘后备急方》。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🔥</div>
+                            <div>
+                                <div class="person-name">雷斅<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">南朝宋</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">正一派道士，中药炮制学鼻祖，将道教丹丸炮制技艺与中药加工结合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《雷公炮炙论》，中国第一部系统中药炮制专著，创立17种基本炮制方法。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">首次将牛黄分为四类，记载"单捣细研"炮制工艺，确立牛黄"研极细粉"原则。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🏔️</div>
+                            <div>
+                                <div class="person-name">陶弘景<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">456-536年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">"陶葛之学"集大成者，茅山宗创始人，隐居茅山40余年。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《本草经集注》，首创药物自然分类法；著《养性延命录》，我国第一部养生学专著。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">新增"治小儿百病"，奠定牛黄"中医儿科第一要药"地位，将牛黄与道教"长生"追求绑定。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">⛩️</div>
+                            <div>
+                                <div class="person-name">寇谦之</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">365-448年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">北天师道改革宗师，剔除巫法芜杂，纯以道气、本草、养生治病，使北方正一道医正规化。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">规范北方道诊疗体系，推动道医本草、养生技艺与中医临床结合，为唐代道教医学鼎盛奠定基础。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第二章 - 第3页 -->
+        <div class="page chapter-page" data-page="6">
+            <div class="chapter-header">
+                <div class="chapter-number">第二章</div>
+                <h2 class="chapter-title">魏晋南北朝（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📜</div>
+                            <div>
+                                <div class="person-name">陆修静</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">407-477年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">南天师道改革宗师、正一道医道规范化第一人，确立南天师道为南朝官方正统道医体系。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">整理大量正一治病秘经、民间验方、服气调气法门，完善正一医学理论体系。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第三章 - 第1页 -->
+        <div class="page chapter-page" data-page="7">
+            <div class="chapter-header">
+                <div class="chapter-number">第三章</div>
+                <h2 class="chapter-title">隋唐五代</h2>
+                <div class="chapter-period">公元589-960年</div>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📍</div>
+                            <div>
+                                <div class="person-name">甄权<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">541-643年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">孙思邈同门师兄，上清派道士，传承道教医学与针灸技艺。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《针灸明堂图》《药性论》，系统论述药物性味、功效及配伍禁忌。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">《药性论》记载牛黄"安魂定魄，辟邪魅，猝中恶，小儿夜啼"，丰富牛黄药用内涵。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">💊</div>
+                            <div>
+                                <div class="person-name">孙思邈<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">541-682年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">被后世尊为"药王"，正式出家为道士，将道教养生术、炼丹术与中医临床深度融合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《备急千金要方》，被誉为"中国最早的医学百科全书"，提出"人命至重"医德思想。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">记载约30个牛黄方剂，创制"耆婆万病丸"等，推动牛黄应用进入鼎盛时期。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🏥</div>
+                            <div>
+                                <div class="person-name">崔知悌<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约615-685年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">上清派道士，唐代宫廷御医，推动道教医学与官方医学融合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《崔氏纂要方》，首次系统记载骨蒸病（肺结核）诊断与治疗，发明"灸骨蒸法"。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录多个含牛黄方剂，用于治疗疰病、鬼疰风邪等急重症。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🧘</div>
+                            <div>
+                                <div class="person-name">叶法善</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">616-720年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">被尊为"叶天师"，正一派第12代天师，主持唐代皇家炼丹与养生事务。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">总结"服气辟谷"科学方法，著《叶天师服气要诀》，推动道教养生术规范化。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第三章 - 第2页 -->
+        <div class="page chapter-page" data-page="8">
+            <div class="chapter-header">
+                <div class="chapter-number">第三章</div>
+                <h2 class="chapter-title">隋唐五代（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🥗</div>
+                            <div>
+                                <div class="person-name">孟诜</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">621-713年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">孙思邈嫡传弟子，辞官归隐后潜心研究医药与养生，践行道教"服食养生"理念。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《食疗本草》，我国第一部食疗学专著，系统阐述"药食同源"思想。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🌿</div>
+                            <div>
+                                <div class="person-name">韦慈藏<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约644-741年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">与孙思邈、甄权并称"唐代三大药王"，正一派道士，推动正一道医在民间普及。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《药诀》《古今录验方》，是唐代官方医学教育的重要奠基人。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">五野丸方含牛黄，用于治疗尸疰、冷疰等多种疰病。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🧘‍♂️</div>
+                            <div>
+                                <div class="person-name">司马承祯</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">647-735年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">唐代上清派著名高道，被尊为"正一先生"，系统阐述道家服气养生与坐忘内修理论。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">其服气养生理论对中医内科调养与康复医学产生重要影响。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📚</div>
+                            <div>
+                                <div class="person-name">陈藏器</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约687-757年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">本草学思想深受道教服食养生思想影响，收录大量道家常用服食药物。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《本草拾遗》，增补新药692种，首创"十剂"分类法，对中医方剂学影响重大。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第三章 - 第3页 -->
+        <div class="page chapter-page" data-page="9">
+            <div class="chapter-header">
+                <div class="chapter-number">第三章</div>
+                <h2 class="chapter-title">隋唐五代（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📖</div>
+                            <div>
+                                <div class="person-name">王冰</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">710-804年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">唐代著名道士、医学家，自号启玄子，深受道家"天人合一""运气学说"影响。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《重广补注黄帝内经素问》，系统阐发"运气学说"，将五运六气理论与临床结合。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">👩‍⚕️</div>
+                            <div>
+                                <div class="person-name">昝殷</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约797-859年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">唐代著名道医，妇产科专家，将道教养生思想融入妇科诊疗。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《经效产宝》，我国现存最早的妇产科专著，记载320余首方剂。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">💊</div>
+                            <div>
+                                <div class="person-name">日华子<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约900-960年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">五代著名道医，系统整理民间道医用药经验，推动道教本草学世俗化普及。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《日华子诸家本草》，收药600余种，首创实用分类法，为宋代官修本草提供参考。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">记载牛黄"疗中风，失音，口噤，妇人血噤"等，延伸牛黄在心脑血管、防疫、妇科领域应用。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四章 - 第1页 -->
+        <div class="page chapter-page" data-page="10">
+            <div class="chapter-header">
+                <div class="chapter-number">第四章</div>
+                <h2 class="chapter-title">宋金元</h2>
+                <div class="chapter-period">公元960-1368年</div>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">☯️</div>
+                            <div>
+                                <div class="person-name">陈抟</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">871-989年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">被尊为"陈抟老祖"，开创"先天易学"，绘制《太极图》，其内丹理论为宋代内丹医学奠定基础。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">其阴阳气化思想、先天易学理论为金元四大家医学立论提供哲学基础。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📚</div>
+                            <div>
+                                <div class="person-name">王怀隐<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约925-997年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">正一派道士，早年出家隐居开封建隆观，医术源自孙思邈道医体系与茅山宗养生传统。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">主持编撰《太平圣惠方》100卷，首次将"五运六气"理论系统应用于临床。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录近400首牛黄方剂，形成"芳香开窍+清热解毒+镇惊安神"经典组合。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🏥</div>
+                            <div>
+                                <div class="person-name">陈昭遇<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">北宋初年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">岭南著名道医，精通本草与针灸，是宋代岭南道医的代表人物。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">与王怀隐共同主持《太平圣惠方》编撰，负责整理岭南草药与民间验方。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">参与编撰的《太平圣惠方》收录大量牛黄方剂。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📜</div>
+                            <div>
+                                <div class="person-name">张君房<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约10-11世纪</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">北宋著名道士、文献编纂家，辑成《云笈七签》被誉为"小道藏"，在道教史上承前启后。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">《云笈七签》广泛收录道教养生、导引、服气、辟谷、炼丹及医药方术，保存大量早期道医文献。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录"链丹合杀鬼丸法"中含牛黄，是典型道教驱邪辟秽丹方。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四章 - 第2页 -->
+        <div class="page chapter-page" data-page="11">
+            <div class="chapter-header">
+                <div class="chapter-number">第四章</div>
+                <h2 class="chapter-title">宋金元（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">💓</div>
+                            <div>
+                                <div class="person-name">崔嘉彦</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1111-1191年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">南宋著名道士、医学家，号紫虚真人，精通脉学与针灸。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《崔真人脉诀》，是中医脉学的重要经典，推动中医脉学普及与发展。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🔥</div>
+                            <div>
+                                <div class="person-name">刘完素<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1110-1200年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">金元四大家之首，寒凉派创始人，自号通玄处士，推崇道家气化学说。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">以"火热论"为核心立论，提出"六气皆从火化"，丰富中医病机理论。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">著有牛黄膏方剂，用于治疗热入血室、发狂等重症，契合其"寒凉清热"学术思想。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">⛩️</div>
+                            <div>
+                                <div class="person-name">王重阳</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1112-1170年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">全真道创始人，主张"儒释道三教合一"，明确提出"医道同源"思想。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">确立全真道"以医传教、行医积功"核心传统，为全真道医体系建立奠定基础。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📍</div>
+                            <div>
+                                <div class="person-name">马钰</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1123-1183年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">全真七子之首，号丹阳子，践行王重阳"医道同源"思想。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《马丹阳天星十二穴治杂病歌》，用歌诀记载12个常用针灸穴位，流传千年。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四章 - 第3页 -->
+        <div class="page chapter-page" data-page="12">
+            <div class="chapter-header">
+                <div class="chapter-number">第四章</div>
+                <h2 class="chapter-title">宋金元（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">⚔️</div>
+                            <div>
+                                <div class="person-name">张从正<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1156-1228年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">金元四大家之一，攻下派创始人，承袭道家"祛邪固本"理念。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">主张用汗、吐、下三法攻逐邪气，著《儒门事亲》，记载大量民间疗法。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">有"牛黄通膈丸"等以牛黄命名但不含牛黄的方剂，反映当时牛黄知名与稀缺的矛盾。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🏔️</div>
+                            <div>
+                                <div class="person-name">丘处机</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1148-1227年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">全真七子之一，龙门派创始人，应成吉思汗之召远赴西域讲道，劝说"止杀爱民"。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《摄生消息论》，系统论述四季养生理论，推动中医康复养生普及。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🧘</div>
+                            <div>
+                                <div class="person-name">白玉蟾</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1134-1229年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">金丹派南宗第五代祖师，提出"内丹调气、外丹治病"治疗原则。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《海琼白真人全集》，记载大量道教丹药与养生方剂，推动内丹医学发展。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🌱</div>
+                            <div>
+                                <div class="person-name">李杲<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1180-1258年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">金元四大家之一，补土派创始人，"元气论"源自道家"元气为万物之本"思想。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">提出"脾胃为后天之本"，著《汤液本草》，系统阐述药物药性、归经。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">首次明确牛黄"入肝治筋"归经理论，创立"中风入脏始用牛黄"使用原则。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四章 - 第4页 -->
+        <div class="page chapter-page" data-page="13">
+            <div class="chapter-header">
+                <div class="chapter-number">第四章</div>
+                <h2 class="chapter-title">宋金元（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🦴</div>
+                            <div>
+                                <div class="person-name">危亦林<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1277-1347年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">江西南丰正一派道士，世医出身，将正一派外科丹方与正骨技艺结合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《世医得效方》，中国第一部骨伤科专著，发明"悬吊复位法"治疗脊柱骨折，比西方早600多年。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录5首含牛黄方剂，应用范围拓展至皮肤病、外科疮疡、急救等领域。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">💧</div>
+                            <div>
+                                <div class="person-name">朱震亨<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1281-1358年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">金元四大家之一，养阴派创始人，早年学习道教内丹术，学术思想深受内丹理论影响。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">主张"滋阴降火"，提出"阳常有余，阴常不足"，丰富中医病机与治疗理论。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录镇惊丸、大天南星丸两首含牛黄方剂，用于小儿惊风、癫痫。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🍖</div>
+                            <div>
+                                <div class="person-name">忽思慧</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约1270-1330年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">元代著名蒙古族道医，曾任宫廷饮膳太医，融合游牧民族饮食文化与道家服食养生理念。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《饮膳正要》，我国第一部营养学专著，系统论述饮食营养与治疗。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🫁</div>
+                            <div>
+                                <div class="person-name">葛乾孙</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1305-1353年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">全真派道士，践行全真道"医道同源""行医积功"理念。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《十药神书》，中国第一部治疗肺痨的专著，创立"十灰散"等著名方剂。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第四章 - 第5页 -->
+        <div class="page chapter-page" data-page="14">
+            <div class="chapter-header">
+                <div class="chapter-number">第四章</div>
+                <h2 class="chapter-title">宋金元（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📍</div>
+                            <div>
+                                <div class="person-name">滑寿</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1304-1386年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">全真龙门派道士，将道教内丹养生与针灸、脉学结合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《十四经发挥》，首次系统阐述任督二脉循行路线，确立中医经络学说核心框架。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">⛪</div>
+                            <div>
+                                <div class="person-name">张宗演</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1244-1292年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">第36代天师，元世祖忽必烈敕封"嗣汉天师"，统摄全国正一道医系统。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">确立全国正一道士必修医药、养生、济世之术的制度，构建全国制度化正一道医传承网络。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第五章 - 第1页 -->
+        <div class="page chapter-page" data-page="15">
+            <div class="chapter-header">
+                <div class="chapter-number">第五章</div>
+                <h2 class="chapter-title">明清</h2>
+                <div class="chapter-period">公元1368-1912年</div>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🥋</div>
+                            <div>
+                                <div class="person-name">张三丰</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约1247-1458年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">武当派创始人，创编太极拳与武当养生功法体系，是武当道医创始人。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">擅长筋骨伤病治疗与调养，推动中医骨伤科与养生术融合。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📕</div>
+                            <div>
+                                <div class="person-name">李时珍<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1518-1593年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">深受道教"贵生""天人合一"思想影响，后世道教将其奉为"药王"，视作"医道合一"典范。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">历时27年编撰《本草纲目》，我国古代本草学巅峰之作，收录药物1892种，方剂11096首。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">汇总历代医书所载牛黄功能主治，全面总结牛黄药用功效，提供权威参考。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📚</div>
+                            <div>
+                                <div class="person-name">徐春甫<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1520-1596年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">正一派道士，其"固本培元"治疗思想源自道家元气论。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《古今医统大全》100卷，创立"一体堂宅仁医会"，中国历史上第一个医学学术团体。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录约30首含牛黄方剂，延续牛黄在儿科、急症领域核心应用，收录牛黄真伪鉴别方法。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">💊</div>
+                            <div>
+                                <div class="person-name">龚廷贤<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1522-1619年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">正一派道士，世医出身，传承正一道医道技艺。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《万病回春》《寿世保元》，系统整理民间道医验方与养生方法，广泛流传于民间。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录10余首含牛黄方剂，如牛黄镇惊丸、牛黄解毒丸等，配伍简洁，贴合民间诊疗需求。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第五章 - 第2页 -->
+        <div class="page chapter-page" data-page="16">
+            <div class="chapter-header">
+                <div class="chapter-number">第五章</div>
+                <h2 class="chapter-title">明清（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📍</div>
+                            <div>
+                                <div class="person-name">杨继洲</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1522-1620年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">正一派道士，将道教内丹养生思想与针灸技艺深度融合，是明代道教针灸医学集大成者。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《针灸大成》，我国针灸学巅峰之作，被后世尊为"针灸宗师"。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">✨</div>
+                            <div>
+                                <div class="person-name">缪希雍<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">约1546-1627年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">深受道家"天人相应""祛邪扶正"思想浸润，传承道家本草与炮制精髓。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《神农本草经疏》《炮炙大法》，系统阐发本草性味归经，传承雷公炮制法。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">用道教"内丹"思想解读牛黄："牛为土畜...其精华凝结为黄，犹人身之有内丹也"。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">💪</div>
+                            <div>
+                                <div class="person-name">李中梓<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1588-1655年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">精通道教养生术与医药学，深受道家"元气论""阴阳平衡"思想影响。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《医宗必读》《寿世青编》，强调"固本培元"养生理念，完善中医养生体系。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录8首含牛黄方剂，强调牛黄与补益药物配伍，丰富牛黄临床使用。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🔥</div>
+                            <div>
+                                <div class="person-name">张介宾<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1563-1640年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">早年研习道教内丹术与养生学，医学思想与道教养生理论深度融合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《景岳全书》《类经》，提出"阳非有余，阴常不足"，完善中医温补学派理论。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">收录10余首含牛黄方剂，强调牛黄与温补药物配伍，丰富配伍思路。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第五章 - 第3页 -->
+        <div class="page chapter-page" data-page="17">
+            <div class="chapter-header">
+                <div class="chapter-number">第五章</div>
+                <h2 class="chapter-title">明清（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🦠</div>
+                            <div>
+                                <div class="person-name">吴有性</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1582-1652年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">深谙道家"气化学说""邪正理论"，以道教"祛邪辟秽"理念指导疫病诊疗。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《温疫论》，我国第一部系统论述温病专著，提出"戾气致病"学说，推动中医温病学诞生。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">✍️</div>
+                            <div>
+                                <div class="person-name">傅山<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1607-1684年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">明末清初著名道医、思想家、书法家，晚年隐居修道，是全真道医重要代表。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《傅青主女科》《傅青主男科》，方剂简洁有效，贴近民间诊疗需求。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">记载牛黄用于治疗男子中风、惊痫等，配伍灵活，丰富牛黄应用场景。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🌡️</div>
+                            <div>
+                                <div class="person-name">叶天士<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1667-1746年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">清代著名道医、温病学家，融合全真道、正一道医道技艺。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">创立温病"卫气营血"辨证体系，著《温热论》，推动温病学成熟与发展。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">治疗温病、热入心包、神昏谵语等重症时，常配合牛黄类成药，纳入温病救急重要手段。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🌿</div>
+                            <div>
+                                <div class="person-name">赵学敏<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1719-1805年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">深入民间搜集道医验方与草药，本草学研究深受道教"天人合一"思想影响。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《本草纲目拾遗》《串雅》，增补新药716种，系统整理民间道医验方。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">将牛黄作为外科急症和清热解毒类方剂重要组成部分，载有含牛黄的三品锭子等方剂。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 第五章 - 第4页 -->
+        <div class="page chapter-page" data-page="18">
+            <div class="chapter-header">
+                <div class="chapter-number">第五章</div>
+                <h2 class="chapter-title">明清（续）</h2>
+            </div>
+            <div class="chapter-content">
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🏆</div>
+                            <div>
+                                <div class="person-name">吴鞠通<span class="niuhuang-badge">牛黄</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1758-1836年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">清代著名道医、温病学家，潜心研习道教养生术与温病学，深受道家思想影响。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《温病条辨》，创立温病"三焦辨证"体系，"安宫牛黄丸"等被称为"温病三宝"。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">牛黄关联</div>
+                            <div class="section-content">作为"安宫牛黄丸"创制者，以牛黄为君药，使牛黄应用达到新的高度。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🔬</div>
+                            <div>
+                                <div class="person-name">王清任</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1768-1831年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">践行道教"求真务实"理念，注重实践观察，是道教医学中"实证派"代表人物。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《医林改错》，通过解剖实践纠正传统中医脏腑理论谬误，创立"活血化瘀"疗法。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">🧘</div>
+                            <div>
+                                <div class="person-name">刘一明</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1734-1821年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">清代著名全真道医、内丹学家，全真龙门派道士，将内丹修炼理论与中医临床深度结合。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《悟元子医道真诠》，系统阐述内丹医学理论，完善全真道医体系。</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="person-card" onclick="toggleCard(this)">
+                    <div class="card-header">
+                        <div class="person-info">
+                            <div class="person-icon">📖</div>
+                            <div>
+                                <div class="person-name">闵一得</div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="person-years">1758-1836年</div>
+                            <div class="expand-icon">▼</div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-section">
+                            <div class="section-label">道教关系</div>
+                            <div class="section-content">清代著名全真道医、内丹学家，全真龙门派第十一代宗师，继承刘一明内丹医学思想。</div>
+                        </div>
+                        <div class="card-section">
+                            <div class="section-label">中医贡献</div>
+                            <div class="section-content">著《古书隐楼藏书》，系统整理全真道内丹养生与医道技艺，推动中医康复养生学发展。</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 结束页 -->
+        <div class="page end-page" data-page="19">
+            <div class="end-icon">☯</div>
+            <h2 class="end-title">道法自然</h2>
+            <p class="end-text">
+                医道同源 · 千年传承<br>
+                济世度人 · 泽被苍生
+            </p>
+            <div class="stats-info">
+                ━━━━━━━━━━━━<br>
+                全书共记载 62 位人物<br>
+                其中牛黄相关 32 位<br>
+                跨越 2500 余年历史<br>
+                ━━━━━━━━━━━━
+            </div>
+            <button class="restart-btn" onclick="restart()">重新浏览</button>
+        </div>
+
+    </div>
+
+    <div class="page-indicator" id="pageIndicator">
+        <div class="indicator-dot active"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+        <div class="indicator-dot"></div>
+    </div>
+
+    <div class="nav-arrows">
+        <div class="nav-arrow" id="prevBtn" onclick="prevPage()">←</div>
+        <div class="nav-arrow" id="nextBtn" onclick="nextPage()">→</div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const totalPages = 20;
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }, 1500);
+        });
+
+        function toggleCard(card) {
+            card.classList.toggle('expanded');
+        }
+
+        function updatePage() {
+            const pages = document.querySelectorAll('.page');
+            const dots = document.querySelectorAll('.indicator-dot');
+            
+            pages.forEach((page, index) => {
+                page.classList.remove('active', 'prev');
+                if (index === currentPage) {
+                    page.classList.add('active');
+                } else if (index < currentPage) {
+                    page.classList.add('prev');
+                }
+            });
+
+            dots.forEach((dot, index) => {
+                dot.classList.toggle('active', index === currentPage);
+            });
+
+            const progress = ((currentPage + 1) / totalPages) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+
+            document.getElementById('pageNumber').textContent = `${currentPage + 1} / ${totalPages}`;
+
+            document.getElementById('prevBtn').style.opacity = currentPage === 0 ? '0.3' : '1';
+            document.getElementById('nextBtn').style.opacity = currentPage === totalPages - 1 ? '0.3' : '1';
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages - 1) {
+                currentPage++;
+                updatePage();
+            }
+        }
+
+        function prevPage() {
+            if (currentPage > 0) {
+                currentPage--;
+                updatePage();
+            }
+        }
+
+        function restart() {
+            currentPage = 0;
+            updatePage();
+            document.querySelectorAll('.person-card').forEach(card => {
+                card.classList.remove('expanded');
+            });
+        }
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextPage();
+                } else {
+                    prevPage();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ') {
+                nextPage();
+            } else if (e.key === 'ArrowLeft') {
+                prevPage();
+            }
+        });
+
+        updatePage();
+    </script>
+</body>
+</html>
